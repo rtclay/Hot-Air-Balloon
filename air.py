@@ -19,33 +19,64 @@ p_naught = 1.013250*math.pow(10, 5)
 r_naught = 6356766 #meters
 
 def get_grav_accel(gmet_height):
-    '''Return the gravitational acceleration for a given geometric altitude'''
-    return (r_naught*gmet_height)/(r_naught-gmet_height)
+    '''Return an approximation of the gravitational acceleration for a given geometric altitude
+    based on equation 17
+    '''
+    return g_naught*math.pow(r_naught/(r_naught*get_gpot_height(gmet_height)), 2)
 
 
 def get_gpot_height(gmet_height):
-    '''Return the Geopotential height for a given geometric altitude'''
+    '''Return the Geopotential height for a given geometric altitude
+    based on equation 19
+    '''
     return (r_naught*gmet_height)/(r_naught-gmet_height)
 
 
+
 def get_temp(gpot_height):
-    '''Return a temperature in Kelvin, given a geopotential gpot_height in meters'''
-    if gpot_height <=heights[0]:
+    '''Return the molecular-scale temperature in Kelvin, given a geopotential gpot_height in meters
+    based on equation 23
+    equal to kinetic temperature up to 80km
+    '''
+    if gpot_height <=heights[1]:
         return temp_naught+l_temp_gradients[0]*gpot_height
-    elif gpot_height <=heights[1]:
-        return temp_naught+l_temp_gradients[1]*(gpot_height-heights[0])
     elif gpot_height <=heights[2]:
-        return temp_naught+l_temp_gradients[2]*(gpot_height-heights[1])
+        return temp_naught+l_temp_gradients[1]*(gpot_height-heights[1])
     elif gpot_height <=heights[3]:
-        return temp_naught+l_temp_gradients[3]*(gpot_height-heights[2])
+        return temp_naught+l_temp_gradients[2]*(gpot_height-heights[2])
     elif gpot_height <=heights[4]:
-        return temp_naught+l_temp_gradients[4]*(gpot_height-heights[3])
+        return temp_naught+l_temp_gradients[3]*(gpot_height-heights[3])
     elif gpot_height <=heights[5]:
-        return temp_naught+l_temp_gradients[5]*(gpot_height-heights[4])
+        return temp_naught+l_temp_gradients[4]*(gpot_height-heights[4])
     elif gpot_height <=heights[6]:
-        return temp_naught+l_temp_gradients[6]*(gpot_height-heights[5])
+        return temp_naught+l_temp_gradients[5]*(gpot_height-heights[5])
     elif gpot_height <=heights[7]:
-        return temp_naught+l_temp_gradients[7]*(gpot_height-heights[6])
+        return temp_naught+l_temp_gradients[6]*(gpot_height-heights[6])
+
+def get_pressure(gpot_height):
+    '''Return the pressure given a geopotential height in meters
+    based on equation 33a and 33b
+    use 33A when temp gradient is not 0
+    use 33B when temp gradient is 0 
+    '''
+    
+    FIX ME PLEASE
+    return math.exp((-get_grav_accel(gmet_height)*))
+    
+    if gpot_height <=heights[1]:
+        return temp_naught+l_temp_gradients[0]*gpot_height
+    elif gpot_height <=heights[2]:
+        return temp_naught+l_temp_gradients[1]*(gpot_height-heights[1])
+    elif gpot_height <=heights[3]:
+        return temp_naught+l_temp_gradients[2]*(gpot_height-heights[2])
+    elif gpot_height <=heights[4]:
+        return temp_naught+l_temp_gradients[3]*(gpot_height-heights[3])
+    elif gpot_height <=heights[5]:
+        return temp_naught+l_temp_gradients[4]*(gpot_height-heights[4])
+    elif gpot_height <=heights[6]:
+        return temp_naught+l_temp_gradients[5]*(gpot_height-heights[5])
+    elif gpot_height <=heights[7]:
+        return temp_naught+l_temp_gradients[6]*(gpot_height-heights[6])
 
 
 
