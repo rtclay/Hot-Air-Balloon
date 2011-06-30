@@ -15,8 +15,8 @@ gas_masses = [28.0134, 31.9988, 39.948, 44.00995, 20.183, 4.0026, 83.80, 131.30,
 gas_frac_volume = [.78084, .209476, .00934, .000314, .00001818, .0000524, .0000114, .00000087, .000002, .0000005]
 M_dry = 28.964 #molecular weight of dry air gm/mol 
 
-heights = [x*1000 for x in [0.0, 11.0, 20.0, 32.0, 47, 51, 71, 84.8520]]
-l_temp_gradients = [-6.5, 0.0, 1.0, 2.8, 0, -2.8, -2]
+heights = [x*1000 for x in [0.0, 11.0, 20.0, 32.0, 47.0, 51.0, 71.0, 84.8520]]
+l_temp_gradients = [x/1000 for x in [-6.5, 0.0, 1.0, 2.8, 0, -2.8, -2.0]]
 
 p_naught = 1.013250 * math.pow(10, 5)
 r_naught = 6356766.0 #meters
@@ -43,24 +43,25 @@ def get_temp(gpot_height):
     '''Return the molecular-scale temperature in Kelvin, given a geopotential gpot_height in meters
     based on equation 23
     equal to kinetic temperature up to 80km
+    implemented recursively
     '''
     if gpot_height <= heights[1]:
         return temp_naught + l_temp_gradients[0] * gpot_height
     elif gpot_height <= heights[2]:
-        return temp_naught + l_temp_gradients[1] * (gpot_height - heights[1])
+        return get_temp(heights[1]) + l_temp_gradients[1] * (gpot_height - heights[1])
     elif gpot_height <= heights[3]:
-        return temp_naught + l_temp_gradients[2] * (gpot_height - heights[2])
+        return get_temp(heights[2]) + l_temp_gradients[2] * (gpot_height - heights[2])
     elif gpot_height <= heights[4]:
-        return temp_naught + l_temp_gradients[3] * (gpot_height - heights[3])
+        return get_temp(heights[3]) + l_temp_gradients[3] * (gpot_height - heights[3])
     elif gpot_height <= heights[5]:
-        return temp_naught + l_temp_gradients[4] * (gpot_height - heights[4])
+        return get_temp(heights[4]) + l_temp_gradients[4] * (gpot_height - heights[4])
     elif gpot_height <= heights[6]:
-        return temp_naught + l_temp_gradients[5] * (gpot_height - heights[5])
+        return get_temp(heights[5]) + l_temp_gradients[5] * (gpot_height - heights[5])
     elif gpot_height <= heights[7]:
-        return temp_naught + l_temp_gradients[6] * (gpot_height - heights[6])
+        return get_temp(heights[6]) + l_temp_gradients[6] * (gpot_height - heights[6])
 
 def get_pressure(gmet_height):
-    '''Return the pressure given a geopotential height in meters
+    '''Return the pressure given a geometric height in meters
     based on equation 33a and 33b
     use 33A when temp gradient is not 0
     use 33B when temp gradient is 0 
@@ -76,7 +77,7 @@ def get_pressure(gmet_height):
 
     if gpot_height <= heights[1]:
         exponent = grav_accel * M_dry / (r_gas_constant * l_temp_gradients[0])
-        return p_naught * math.pow(temp / (temp + l_temp_gradients[0] * (gmet_height - heights[0])), exponent)
+        return p_naught * math.pow(temp / (temp + l_temp_gradients[0] * (gpot_height - heights[0])), exponent)
     elif gpot_height <= heights[2]:
         return p_naught * math.exp((-grav_accel) * M_dry * (gmet_height - heights[1]) / (r_gas_constant * temp))
     elif gpot_height <= heights[3]:
@@ -94,6 +95,23 @@ def get_pressure(gmet_height):
         exponent = grav_accel * M_dry / (r_gas_constant * l_temp_gradients[6])
         return p_naught * math.pow(temp / (temp + l_temp_gradients[6] * (gmet_height - heights[6])), exponent)
 
+def get_sector(gpot_height):
+    '''Return the sector of the atmosphere the height falls into, according to Table 4
+    see list heights'''
+    if gpot_height <= heights[1]:
+        return 0
+    elif gpot_height <= heights[2]:
+        return 1
+    elif gpot_height <= heights[3]:
+        return 2
+    elif gpot_height <= heights[4]:
+        return 3
+    elif gpot_height <= heights[5]:
+        return 4
+    elif gpot_height <= heights[6]:
+        return 5
+    elif gpot_height <= heights[7]:
+        return 6
 
 
 #Perfect gas is valid below 86km altitude
@@ -107,8 +125,8 @@ def get_deriv(func):
     '''Returns the derivative function of func'''
     pass
 
-for H in range(500, 20000, 500):
-    "%10.2f %10.2f %6.2f %10.2f %10.2f"%(H, get_gpot_height(H), get_grav_accel(H), get_pressure(H), get_temp(get_gpot_height(H)))
+for H in range(0, 50000, 500):
+    print "%10.2f %10.2f %6.2f %10.2f %10.2f"%(H, get_gpot_height(H), get_grav_accel(H), get_pressure(H), get_temp(get_gpot_height(H)))
 
 #H=5000
 #print "%10.2f %10.2f %6.2f %10.2f %10.2f"%(H, get_gpot_height(H), get_grav_accel(H), get_pressure(H), get_temp(get_gpot_height(H)))
