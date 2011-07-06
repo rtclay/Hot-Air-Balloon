@@ -163,33 +163,36 @@ def x_squared(x):
     return x*x
 def deriv(x):
     return 2*x
+def integ(x):
+    return 1.0/3*x*x*x
 
 def num_int0(func, start, stop, step_size=.1):
     sum=0
-    print int((stop - start)/step_size)
     for x in range(int((stop - start)/step_size)):
-        print sum, x, func(x), (func(x*step_size+start) * step_size)
         sum = sum+ (func(x*step_size+start) * step_size) 
     return sum
 
 def num_int1(func, start, stop, step_size=.1):
     sum=0
-    print int((stop - start)/step_size)
     for x in range(int((stop - start)/step_size)):
-        print sum, x, func(x), (func(x*step_size+start) * step_size)
         sum = sum+ .5*(func(x*step_size+start) * step_size) + .5* (func((x+1)*step_size+start) * step_size)
     return sum
 
 def num_int2(func, start, stop, step_size=.1):
     sum=0
-    print int((stop - start)/step_size)
-    for x in range(int((stop - start)/step_size)):
-        print sum, x, func(x), (func(x*step_size+start) * step_size)
+    for x in range(int((stop - start)/step_size)):        
+        k1= step_size*func(x*step_size+start)
+        k2= step_size*func((x+.5)*step_size+start)
+        k3= step_size*func((x+.5)*step_size+start)
+        k4= step_size*func((x+1)*step_size+start)
         
-        k1= step_size*deriv(x)
-        
-        sum = sum+ .5*(func(x*step_size+start) * step_size) + .5* (func((x+1)*step_size+start) * step_size)
+        sum = sum+ (k1/6.0)+ (k2/3.0)+ (k3/3.0)+ (k4/6.0)
     return sum
 
-print num_int0(x_squared, 0,4)
-print num_int1(x_squared, 0,4)
+start = 0
+stop = 18
+
+print num_int0(x_squared, start,stop)
+print num_int1(x_squared, start,stop)
+print num_int2(x_squared, start,stop)
+print integ(stop)-integ(start)
