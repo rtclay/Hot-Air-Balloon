@@ -20,6 +20,21 @@ l_temp_gradients = [x/1000 for x in [-6.5, 0.0, 1.0, 2.8, 0, -2.8, -2.0]]
 
 p_naught = 1.013250 * math.pow(10, 5)
 r_naught = 6356766.0 #meters
+universal_grav = 6.67384 * math.pow(10, -11)
+mass_earth = 5.9722 * math.pow(10, 24)
+
+
+
+#Nomex http://www2.dupont.com/Energy_Solutions/en_US/assets/downloads/E56.pdf
+#Nylon http://en.wikipedia.org/wiki/Nylon 
+
+densities = dict({"steel": 7850,
+                  "aluminum": 2600,
+                  "silk": 1340,
+                  "nylon": 1150,
+                  "Nomex": 670,
+                  
+                  })
 
 def get_grav_accel(gmet_height):
     '''Return an approximation of the gravitational acceleration for a given geometric altitude
@@ -99,19 +114,22 @@ def get_temp(gpot_height):
 #        exponent = grav_accel * M_dry / (r_gas_constant * l_temp_gradients[6])
 #        return get_pressure(heights[6]) * math.pow(temp / (temp + l_temp_gradients[6] * (gpot_height - heights[6])), exponent)
 
-#def old_get_pressure(gmet_height):
-#    '''Return the pressure given a geometric height in meters
-#    based on NASA page http://www.grc.nasa.gov/WWW/K-12/airplane/atmosmet.html
-#    use 33A when temp gradient is not 0
-#    use 33B when temp gradient is 0 
-#    
-#    temp gradients defined in l_temp_gradients
-#    per page 9, the molecular mass is essentially the same for each molecule up to 80km
-#    '''
-#
-#    gpot_height = get_gpot_height(gmet_height)
-#    grav_accel = get_grav_accel(gmet_height)
-#    temp = get_temp(gpot_height)
+def get_pressure(gmet_height):
+    '''Return the pressure given a geometric height in meters
+    based on NASA page http://www.grc.nasa.gov/WWW/K-12/airplane/atmosmet.html
+    '''
+    gpot_height = get_gpot_height(gmet_height)
+    grav_accel = get_grav_accel(gmet_height)
+    temp = get_temp(gpot_height)
+    
+    sector = get_sector(gpot_height)
+    
+    if sector == 0:
+        return 101.29 * math.pow((temp)/288.08, 5.256)
+    elif sector == 1:
+        return 22.65 * math.exp(1.73 - .000157 * gpot_height)
+    else:
+        return 2.488 * math.pow((temp)/ 216.6, -11.388)
 
 def get_sector(gpot_height):
     '''Return the sector of the atmosphere the height falls into, according to Table 4
@@ -142,22 +160,25 @@ def perfect_gas(n_moles_of_gas, volume, temperature):
     '''Return P = NRT/V'''
     return (n_moles_of_gas * r_gas_constant * temperature) / volume
 
-#dP = -g*
+def get_density_of_air(gmet_height, temperature=None):
+    '''Return density of air
+    takes a value for temperature of air, or if blank calculates it from height
+    based on NASA page http://www.grc.nasa.gov/WWW/K-12/airplane/atmosmet.html
+    '''
+    gpot_height = get_gpot_height(gmet_height)
+    if temperature is None:
+        temperature = get_temp(gpot_height)
+        
+    return get_pressure(gmet_height)/(0.2869*temperature)
 
-def get_deriv(func):
-    '''Returns the derivative function of func'''
-    pass
-#print "%10s, %10s, %6s, %10s, %10s"%("GMet", "Gpot", "Gaccel", "Pressure", "temp")
-#for H in range(0, 50000, 500):
-#    
-#    print "%10.2f, %10.2f, %6.2f, %10.2f, %10.2f,"%(H, get_gpot_height(H), get_grav_accel(H), get_pressure(H), get_temp(get_gpot_height(H)))
-#
-##H=5000
-##print "%10.2f %10.2f %6.2f %10.2f %10.2f"%(H, get_gpot_height(H), get_grav_accel(H), get_pressure(H), get_temp(get_gpot_height(H)))
-
-
-
-
+def get_weight(density, volume, gmet_height):
+    '''Return the weight in Newtons of the object
+    F= G*(m1*m2)/r^2
+    G= 6.67384 * 10^-11
+    '''
+    mass = density*volume
+    weight = universal_grav*(mass_earth)/math.pow(r_naught+gmet_height, 2)*mass
+    return weight
 
 def x_squared(x):
     return x*x
@@ -183,16 +204,65 @@ def num_int2(func, start, stop, step_size=.1):
     for x in range(int((stop - start)/step_size)):        
         k1= step_size*func(x*step_size+start)
         k2= step_size*func((x+.5)*step_size+start)
-        k3= step_size*func((x+.5)*step_size+start)
+#        k3= step_size*func((x+.5)*step_size+start)
+        k3=k2
         k4= step_size*func((x+1)*step_size+start)
         
         sum = sum+ (k1/6.0)+ (k2/3.0)+ (k3/3.0)+ (k4/6.0)
     return sum
 
-start = 0
-stop = 18
 
-print num_int0(x_squared, start,stop)
-print num_int1(x_squared, start,stop)
-print num_int2(x_squared, start,stop)
-print integ(stop)-integ(start)
+
+envelope_radius = 500.0
+envelope_thickness = 0.01
+
+envelope_volume = math.pi*4/3*math.pow(envelope_radius, 3)
+
+altitude = 1000 #this is the geometric elevation of the center of the envelope
+
+def get_cylinder_weight(gmet_height, material, cyl_height, cyl_radius, temperature):
+    '''Return the weight of a vertically oriented cylinder'''
+    volume = math.pi*cyl_radius*cyl_radius*cyl_height
+    
+    if material =="air":
+        density = get_density_of_air(gmet_height, temperature)
+    else:
+        density == densities[material]
+        
+    return get_weight(density, volume, gmet_height)
+
+def get_sphere_weight(gmet_height, radius, temperature_function):
+    
+    step_size=1
+    num_steps = int((2*radius)/step_size)
+    #radius is radius, cos radius is how far along the sphere we are, sin radius is the cylinder radius of the slice at that height in the sphere
+    theta = math.acos((-1+x/num_steps)*radius)
+    cyl_radius = 
+    
+    func= lambda x: get_cylinder_weight(gmet_height+((-1+x/num_steps)*radius), material, step_size, cyl_radius, temperature)
+    
+    num_int2(func, start, stop, step_size=.1):
+
+    
+
+
+print "%10s, %10s, %6s, %10s, %10s"%("GMet", "Gpot", "Gaccel", "Pressure", "temp")
+for H in range(0, 50000, 500):
+    
+    print "%10.2f, %10.2f, %6.2f, %10.2f, %10.2f,"%(H, get_gpot_height(H), get_grav_accel(H), get_pressure(H), get_temp(get_gpot_height(H)))
+
+
+
+
+
+
+
+
+
+#start = 0
+#stop = 18
+#
+#print num_int0(x_squared, start,stop)
+#print num_int1(x_squared, start,stop)
+#print num_int2(x_squared, start,stop)
+#print integ(stop)-integ(start)
