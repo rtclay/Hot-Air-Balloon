@@ -64,40 +64,54 @@ def get_temp(gpot_height):
     elif gpot_height <= heights[7]:
         return get_temp(heights[6]) + l_temp_gradients[6] * (gpot_height - heights[6])
 
-def get_pressure(gmet_height):
-    '''Return the pressure given a geometric height in meters
-    based on equation 33a and 33b
-    use 33A when temp gradient is not 0
-    use 33B when temp gradient is 0 
-    
-    temp gradients defined in l_temp_gradients
-    per page 9, the molecular mass is essentially the same for each molecule up to 80km
-    '''
+#def old_get_pressure(gmet_height):
+#    '''Return the pressure given a geometric height in meters
+#    based on equation 33a and 33b
+#    use 33A when temp gradient is not 0
+#    use 33B when temp gradient is 0 
+#    
+#    temp gradients defined in l_temp_gradients
+#    per page 9, the molecular mass is essentially the same for each molecule up to 80km
+#    '''
+#
+#    gpot_height = get_gpot_height(gmet_height)
+#    grav_accel = get_grav_accel(gmet_height)
+#    temp = get_temp(gpot_height)
+#
+#
+#    if gpot_height <= heights[1]:
+#        exponent = grav_accel * M_dry / (r_gas_constant * l_temp_gradients[0])
+#        return p_naught * math.pow(temp / (temp + l_temp_gradients[0] * (gpot_height - heights[0])), exponent)
+#    elif gpot_height <= heights[2]:
+#        return get_pressure(heights[1]) * math.exp((-grav_accel) * M_dry * (gpot_height - heights[1]) / (r_gas_constant * temp))
+#    elif gpot_height <= heights[3]:
+#        exponent = grav_accel * M_dry / (r_gas_constant * l_temp_gradients[2])
+#        return get_pressure(heights[2]) * math.pow(temp / (temp + l_temp_gradients[2] * (gpot_height - heights[2])), exponent)
+#    elif gpot_height <= heights[4]:
+#        exponent = grav_accel * M_dry / (r_gas_constant * l_temp_gradients[3])
+#        return get_pressure(heights[3]) * math.pow(temp / (temp + l_temp_gradients[3] * (gpot_height - heights[3])), exponent)
+#    elif gpot_height <= heights[5]:
+#        return get_pressure(heights[4]) * math.exp((-grav_accel) * M_dry * (gpot_height - heights[4]) / (r_gas_constant * temp))
+#    elif gpot_height <= heights[6]:
+#        exponent = grav_accel * M_dry / (r_gas_constant * l_temp_gradients[5])
+#        return get_pressure(heights[5]) * math.pow(temp / (temp + l_temp_gradients[5] * (gpot_height - heights[5])), exponent)
+#    elif gpot_height <= heights[7]:
+#        exponent = grav_accel * M_dry / (r_gas_constant * l_temp_gradients[6])
+#        return get_pressure(heights[6]) * math.pow(temp / (temp + l_temp_gradients[6] * (gpot_height - heights[6])), exponent)
 
-    gpot_height = get_gpot_height(gmet_height)
-    grav_accel = get_grav_accel(gmet_height)
-    temp = get_temp(gpot_height)
-
-
-    if gpot_height <= heights[1]:
-        exponent = grav_accel * M_dry / (r_gas_constant * l_temp_gradients[0])
-        return p_naught * math.pow(temp / (temp + l_temp_gradients[0] * (gpot_height - heights[0])), exponent)
-    elif gpot_height <= heights[2]:
-        return get_pressure(heights[1]) * math.exp((-grav_accel) * M_dry * (gpot_height - heights[1]) / (r_gas_constant * temp))
-    elif gpot_height <= heights[3]:
-        exponent = grav_accel * M_dry / (r_gas_constant * l_temp_gradients[2])
-        return get_pressure(heights[2]) * math.pow(temp / (temp + l_temp_gradients[2] * (gpot_height - heights[2])), exponent)
-    elif gpot_height <= heights[4]:
-        exponent = grav_accel * M_dry / (r_gas_constant * l_temp_gradients[3])
-        return get_pressure(heights[3]) * math.pow(temp / (temp + l_temp_gradients[3] * (gpot_height - heights[3])), exponent)
-    elif gpot_height <= heights[5]:
-        return get_pressure(heights[4]) * math.exp((-grav_accel) * M_dry * (gpot_height - heights[4]) / (r_gas_constant * temp))
-    elif gpot_height <= heights[6]:
-        exponent = grav_accel * M_dry / (r_gas_constant * l_temp_gradients[5])
-        return get_pressure(heights[5]) * math.pow(temp / (temp + l_temp_gradients[5] * (gpot_height - heights[5])), exponent)
-    elif gpot_height <= heights[7]:
-        exponent = grav_accel * M_dry / (r_gas_constant * l_temp_gradients[6])
-        return get_pressure(heights[6]) * math.pow(temp / (temp + l_temp_gradients[6] * (gpot_height - heights[6])), exponent)
+#def old_get_pressure(gmet_height):
+#    '''Return the pressure given a geometric height in meters
+#    based on NASA page http://www.grc.nasa.gov/WWW/K-12/airplane/atmosmet.html
+#    use 33A when temp gradient is not 0
+#    use 33B when temp gradient is 0 
+#    
+#    temp gradients defined in l_temp_gradients
+#    per page 9, the molecular mass is essentially the same for each molecule up to 80km
+#    '''
+#
+#    gpot_height = get_gpot_height(gmet_height)
+#    grav_accel = get_grav_accel(gmet_height)
+#    temp = get_temp(gpot_height)
 
 def get_sector(gpot_height):
     '''Return the sector of the atmosphere the height falls into, according to Table 4
@@ -133,10 +147,49 @@ def perfect_gas(n_moles_of_gas, volume, temperature):
 def get_deriv(func):
     '''Returns the derivative function of func'''
     pass
-print "%10s, %10s, %6s, %10s, %10s"%("GMet", "Gpot", "Gaccel", "Pressure", "temp")
-for H in range(0, 50000, 500):
-    
-    print "%10.2f, %10.2f, %6.2f, %10.2f, %10.2f,"%(H, get_gpot_height(H), get_grav_accel(H), get_pressure(H), get_temp(get_gpot_height(H)))
+#print "%10s, %10s, %6s, %10s, %10s"%("GMet", "Gpot", "Gaccel", "Pressure", "temp")
+#for H in range(0, 50000, 500):
+#    
+#    print "%10.2f, %10.2f, %6.2f, %10.2f, %10.2f,"%(H, get_gpot_height(H), get_grav_accel(H), get_pressure(H), get_temp(get_gpot_height(H)))
+#
+##H=5000
+##print "%10.2f %10.2f %6.2f %10.2f %10.2f"%(H, get_gpot_height(H), get_grav_accel(H), get_pressure(H), get_temp(get_gpot_height(H)))
 
-#H=5000
-#print "%10.2f %10.2f %6.2f %10.2f %10.2f"%(H, get_gpot_height(H), get_grav_accel(H), get_pressure(H), get_temp(get_gpot_height(H)))
+
+
+
+
+def x_squared(x):
+    return x*x
+def deriv(x):
+    return 2*x
+
+def num_int0(func, start, stop, step_size=.1):
+    sum=0
+    print int((stop - start)/step_size)
+    for x in range(int((stop - start)/step_size)):
+        print sum, x, func(x), (func(x*step_size+start) * step_size)
+        sum = sum+ (func(x*step_size+start) * step_size) 
+    return sum
+
+def num_int1(func, start, stop, step_size=.1):
+    sum=0
+    print int((stop - start)/step_size)
+    for x in range(int((stop - start)/step_size)):
+        print sum, x, func(x), (func(x*step_size+start) * step_size)
+        sum = sum+ .5*(func(x*step_size+start) * step_size) + .5* (func((x+1)*step_size+start) * step_size)
+    return sum
+
+def num_int2(func, start, stop, step_size=.1):
+    sum=0
+    print int((stop - start)/step_size)
+    for x in range(int((stop - start)/step_size)):
+        print sum, x, func(x), (func(x*step_size+start) * step_size)
+        
+        k1= step_size*deriv(x)
+        
+        sum = sum+ .5*(func(x*step_size+start) * step_size) + .5* (func((x+1)*step_size+start) * step_size)
+    return sum
+
+print num_int0(x_squared, 0,4)
+print num_int1(x_squared, 0,4)
