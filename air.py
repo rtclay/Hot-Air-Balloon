@@ -227,17 +227,20 @@ def get_cylinder_weight(gmet_height, material, cyl_height, cyl_radius, temperatu
     if material =="air":
         density = get_density_of_air(gmet_height, temperature)
     else:
-        density == densities[material]
+        density = densities[material]
         
     return get_weight(density, volume, gmet_height)
 
-def get_sphere_weight(gmet_height, radius, temperature_function):
+def get_sphere_weight(gmet_height, material=None, radius, temperature_function):
+    
+    if material is None:
+        material = "air"
     
     step_size=1
     num_steps = int((2*radius)/step_size)
     #radius is radius, cos radius is how far along the sphere we are, sin radius is the cylinder radius of the slice at that height in the sphere
-    theta = math.acos((-1+x/num_steps)*radius)
-    cyl_radius = 
+    theta = math.acos(-1+ x / num_steps *math.pi)
+    #cyl radius is 
     
     func= lambda x: get_cylinder_weight(gmet_height+((-1+x/num_steps)*radius), material, step_size, cyl_radius, temperature)
     
