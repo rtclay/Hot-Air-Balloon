@@ -15,8 +15,8 @@ gas_masses = [28.0134, 31.9988, 39.948, 44.00995, 20.183, 4.0026, 83.80, 131.30,
 gas_frac_volume = [.78084, .209476, .00934, .000314, .00001818, .0000524, .0000114, .00000087, .000002, .0000005]
 M_dry = 28.964 #molecular weight of dry air gm/mol 
 
-heights = [x*1000 for x in [0.0, 11.0, 20.0, 32.0, 47.0, 51.0, 71.0, 84.8520]]
-l_temp_gradients = [x/1000 for x in [-6.5, 0.0, 1.0, 2.8, 0, -2.8, -2.0]]
+heights = [x * 1000 for x in [0.0, 11.0, 20.0, 32.0, 47.0, 51.0, 71.0, 84.8520]]
+l_temp_gradients = [x / 1000 for x in [-6.5, 0.0, 1.0, 2.8, 0, -2.8, -2.0]]
 
 p_naught = 1.013250 * math.pow(10, 5)
 r_naught = 6356766.0 #meters
@@ -33,7 +33,7 @@ densities = dict({"steel": 7850,
                   "silk": 1340,
                   "nylon": 1150,
                   "Nomex": 670,
-                  
+
                   })
 
 def get_grav_accel(gmet_height):
@@ -121,15 +121,15 @@ def get_pressure(gmet_height):
     gpot_height = get_gpot_height(gmet_height)
     grav_accel = get_grav_accel(gmet_height)
     temp = get_temp(gpot_height)
-    
+
     sector = get_sector(gpot_height)
-    
+
     if sector == 0:
-        return 101.29 * math.pow((temp)/288.08, 5.256)
+        return 101.29 * math.pow((temp) / 288.08, 5.256)
     elif sector == 1:
         return 22.65 * math.exp(1.73 - .000157 * gpot_height)
     else:
-        return 2.488 * math.pow((temp)/ 216.6, -11.388)
+        return 2.488 * math.pow((temp) / 216.6, -11.388)
 
 def get_sector(gpot_height):
     '''Return the sector of the atmosphere the height falls into, according to Table 4
@@ -153,7 +153,7 @@ def get_thermal_conductivity(temperature):
     '''Return a coefficient of thermal conductivity for air given a temperature
     based on equation 53
     '''
-    return (2.64638*math.pow(10, -3)*math.pow(temperature, 3.0/2.0))/(temperature+(245.4*math.pow(10, -12.0/temperature)))
+    return (2.64638 * math.pow(10, -3) * math.pow(temperature, 3.0 / 2.0)) / (temperature + (245.4 * math.pow(10, -12.0 / temperature)))
 
 #Perfect gas is valid below 86km altitude
 def perfect_gas(n_moles_of_gas, volume, temperature):
@@ -168,47 +168,47 @@ def get_density_of_air(gmet_height, temperature=None):
     gpot_height = get_gpot_height(gmet_height)
     if temperature is None:
         temperature = get_temp(gpot_height)
-        
-    return get_pressure(gmet_height)/(0.2869*temperature)
+
+    return get_pressure(gmet_height) / (0.2869 * temperature)
 
 def get_weight(density, volume, gmet_height):
     '''Return the weight in Newtons of the object
     F= G*(m1*m2)/r^2
     G= 6.67384 * 10^-11
     '''
-    mass = density*volume
-    weight = universal_grav*(mass_earth)/math.pow(r_naught+gmet_height, 2)*mass
+    mass = density * volume
+    weight = universal_grav * (mass_earth) / math.pow(r_naught + gmet_height, 2) * mass
     return weight
 
 def x_squared(x):
-    return x*x
+    return x * x
 def deriv(x):
-    return 2*x
+    return 2 * x
 def integ(x):
-    return 1.0/3*x*x*x
+    return 1.0 / 3 * x * x * x
 
 def num_int0(func, start, stop, step_size=.1):
-    sum=0
-    for x in range(int((stop - start)/step_size)):
-        sum = sum+ (func(x*step_size+start) * step_size) 
+    sum = 0
+    for x in range(int((stop - start) / step_size)):
+        sum = sum + (func(x * step_size + start) * step_size)
     return sum
 
 def num_int1(func, start, stop, step_size=.1):
-    sum=0
-    for x in range(int((stop - start)/step_size)):
-        sum = sum+ .5*(func(x*step_size+start) * step_size) + .5* (func((x+1)*step_size+start) * step_size)
+    sum = 0
+    for x in range(int((stop - start) / step_size)):
+        sum = sum + .5 * (func(x * step_size + start) * step_size) + .5 * (func((x + 1) * step_size + start) * step_size)
     return sum
 
 def num_int2(func, start, stop, step_size=.1):
-    sum=0
-    for x in range(int((stop - start)/step_size)):        
-        k1= step_size*func(x*step_size+start)
-        k2= step_size*func((x+.5)*step_size+start)
+    sum = 0
+    for x in range(int((stop - start) / step_size)):
+        k1 = step_size * func(x * step_size + start)
+        k2 = step_size * func((x + .5) * step_size + start)
 #        k3= step_size*func((x+.5)*step_size+start)
-        k3=k2
-        k4= step_size*func((x+1)*step_size+start)
-        
-        sum = sum+ (k1/6.0)+ (k2/3.0)+ (k3/3.0)+ (k4/6.0)
+        k3 = k2
+        k4 = step_size * func((x + 1) * step_size + start)
+
+        sum = sum + (k1 / 6.0) + (k2 / 3.0) + (k3 / 3.0) + (k4 / 6.0)
     return sum
 
 
@@ -216,43 +216,75 @@ def num_int2(func, start, stop, step_size=.1):
 envelope_radius = 500.0
 envelope_thickness = 0.01
 
-envelope_volume = math.pi*4/3*math.pow(envelope_radius, 3)
+envelope_volume = math.pi * 4 / 3 * math.pow(envelope_radius, 3)
 
 altitude = 1000 #this is the geometric elevation of the center of the envelope
 
 def get_cylinder_weight(gmet_height, material, cyl_height, cyl_radius, temperature):
     '''Return the weight of a vertically oriented cylinder'''
-    volume = math.pi*cyl_radius*cyl_radius*cyl_height
+    print "height is ", str(gmet_height)
+    print "material is ", str(material)
+    print "cyl_height is ", str(cyl_height)
+    print "cyl_radius is ", str(cyl_radius)
+    print "temperature is ", str(temperature)
     
-    if material =="air":
+    volume = math.pi * cyl_radius * cyl_radius * cyl_height
+
+    if material == "air":
         density = get_density_of_air(gmet_height, temperature)
     else:
         density = densities[material]
-        
+
     return get_weight(density, volume, gmet_height)
 
-def get_sphere_weight(gmet_height, material=None, radius, temperature_function):
+def get_sphere_weight(gmet_height, radius, temperature_function, material=None):
+    '''Return the weight of a sphere with center at gmet_height, of material, of radius (meters), with temperature being a function defined by gmet height
     
+    '''
+    radius = int(radius)
+
     if material is None:
         material = "air"
-    
-    step_size=1
-    num_steps = int((2*radius)/step_size)
-    #radius is radius, cos radius is how far along the sphere we are, sin radius is the cylinder radius of the slice at that height in the sphere
-    theta = math.acos(-1+ x / num_steps *math.pi)
-    #cyl radius is 
-    
-    func= lambda x: get_cylinder_weight(gmet_height+((-1+x/num_steps)*radius), material, step_size, cyl_radius, temperature)
-    
-    num_int2(func, start, stop, step_size=.1):
 
-    
+    step_size = 1 #1 meter step size
+    num_steps = int((2 * radius) / step_size)
+    #starts integrating at bottom of sphere, goes to top of sphere
+    #has a cylinder at each height
+    #treats bottom of sphere as angle pi, goes to angle 0 at top of sphere
 
 
-print "%10s, %10s, %6s, %10s, %10s"%("GMet", "Gpot", "Gaccel", "Pressure", "temp")
-for H in range(0, 50000, 500):
+    #cos theta times radius is how far along the height of the sphere we are, so use acos to find theta
+    #sin theta times radius is the cylinder radius of the slice at that height in the sphere
+#    get_theta = lambda step: math.acos(-1+ (x / num_steps) *math.pi)
+#    theta = get_theta(x)
+#    get_cyl_radius= lambda step: math.sin(math.acos(-1+ (x / num_steps) *math.pi))* radius
+#    temperature = temperature_function(gmet_height)
     
-    print "%10.2f, %10.2f, %6.2f, %10.2f, %10.2f,"%(H, get_gpot_height(H), get_grav_accel(H), get_pressure(H), get_temp(get_gpot_height(H)))
+    
+#    for step in range(1000):
+#        print -1 + (float(step) / num_steps) * 2, math.acos(-1 + (float(step) / num_steps) * 2), math.sin(math.acos(-1 + (float(step) / num_steps) * 2)) * radius
+#    get_cyl_weight = lambda step: get_cylinder_weight(gmet_height + (-1 + float(step) / num_steps) * 2 * radius, material, step_size, math.sin(math.acos(-1 + (float(step) / num_steps) * 2)) * radius, temperature_function(gmet_height + (-1 + float(step) / num_steps) * 2 * radius))
+    def get_cyl_weight(step):
+        print gmet_height + (-1 + float(step) / num_steps) * 2 * radius
+        print step
+        print math.sin(math.acos(-1 + (float(step) / num_steps) * 2))
+        print "%10.2f, %10.2f, %6.2f, " % (step, gmet_height + (-1 + float(step) / num_steps) * 2 * radius, math.sin(math.acos(-1 + (float(step) / num_steps) * 2)))
+        return get_cylinder_weight(gmet_height + (-1 + float(step) / num_steps) * 2 * radius, material, step_size, math.sin(math.acos(-1 + (float(step) / num_steps) * 2)) * radius, temperature_function(gmet_height + (-1 + float(step) / num_steps) * 2 * radius))
+    
+    
+
+    return num_int2(get_cyl_weight, gmet_height - radius, gmet_height + radius, step_size)
+
+
+
+
+
+#print "%10s, %10s, %6s, %10s, %10s" % ("GMet", "Gpot", "Gaccel", "Pressure", "temp")
+#for H in range(0, 50000, 500):
+#
+#    print "%10.2f, %10.2f, %6.2f, %10.2f, %10.2f," % (H, get_gpot_height(H), get_grav_accel(H), get_pressure(H), get_temp(get_gpot_height(H)))
+
+print get_sphere_weight(10000, 500, get_temp, "air")
 
 
 
