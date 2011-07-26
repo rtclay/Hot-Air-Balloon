@@ -222,11 +222,11 @@ altitude = 1000 #this is the geometric elevation of the center of the envelope
 
 def get_cylinder_weight(gmet_height, material, cyl_height, cyl_radius, temperature):
     '''Return the weight of a vertically oriented cylinder'''
-    print "height is ", str(gmet_height)
-    print "material is ", str(material)
-    print "cyl_height is ", str(cyl_height)
-    print "cyl_radius is ", str(cyl_radius)
-    print "temperature is ", str(temperature)
+#    print "height is ", str(gmet_height)
+#    print "material is ", str(material)
+#    print "cyl_height is ", str(cyl_height)
+#    print "cyl_radius is ", str(cyl_radius)
+#    print "temperature is ", str(temperature)
     
     volume = math.pi * cyl_radius * cyl_radius * cyl_height
 
@@ -246,7 +246,7 @@ def get_sphere_weight(gmet_height, radius, temperature_function, material=None):
     if material is None:
         material = "air"
 
-    step_size = 1 #1 meter step size
+    step_size = .1 # step size in meters
     num_steps = int((2 * radius) / step_size)
     #starts integrating at bottom of sphere, goes to top of sphere
     #has a cylinder at each height
@@ -264,12 +264,14 @@ def get_sphere_weight(gmet_height, radius, temperature_function, material=None):
 #    for step in range(1000):
 #        print -1 + (float(step) / num_steps) * 2, math.acos(-1 + (float(step) / num_steps) * 2), math.sin(math.acos(-1 + (float(step) / num_steps) * 2)) * radius
 #    get_cyl_weight = lambda step: get_cylinder_weight(gmet_height + (-1 + float(step) / num_steps) * 2 * radius, material, step_size, math.sin(math.acos(-1 + (float(step) / num_steps) * 2)) * radius, temperature_function(gmet_height + (-1 + float(step) / num_steps) * 2 * radius))
-    def get_cyl_weight(step):
-        print gmet_height + (-1 + float(step) / num_steps) * 2 * radius
-        print step
-        print math.sin(math.acos(-1 + (float(step) / num_steps) * 2))
-        print "%10.2f, %10.2f, %6.2f, " % (step, gmet_height + (-1 + float(step) / num_steps) * 2 * radius, math.sin(math.acos(-1 + (float(step) / num_steps) * 2)))
-        return get_cylinder_weight(gmet_height + (-1 + float(step) / num_steps) * 2 * radius, material, step_size, math.sin(math.acos(-1 + (float(step) / num_steps) * 2)) * radius, temperature_function(gmet_height + (-1 + float(step) / num_steps) * 2 * radius))
+
+    
+    def get_cyl_weight(iterative_height):
+        '''Return the weight of a specific cylinder, given the cylinder's location in the sphere'''
+        vertical_distance_from_center= iterative_height - gmet_height
+        base = vertical_distance_from_center/radius
+        
+        return get_cylinder_weight(gmet_height + vertical_distance_from_center, material, step_size, math.sin(math.acos(base)) * radius, temperature_function(gmet_height + vertical_distance_from_center))
     
     
 
@@ -284,8 +286,12 @@ def get_sphere_weight(gmet_height, radius, temperature_function, material=None):
 #
 #    print "%10.2f, %10.2f, %6.2f, %10.2f, %10.2f," % (H, get_gpot_height(H), get_grav_accel(H), get_pressure(H), get_temp(get_gpot_height(H)))
 
-print get_sphere_weight(10000, 500, get_temp, "air")
-
+#print get_sphere_weight(10000, 500, get_temp, "air")
+rad = 500
+print "%10s %20.2f" % ( "air", get_sphere_weight(500, rad, get_temp, "air"))
+vol = 4.0/3*math.pi*rad*rad*rad
+for material in densities.keys():
+    print "%10s, %20.2f, %20.2f" % ( material, get_sphere_weight(10000, rad, get_temp, material), get_weight(densities[material], vol, 10000))
 
 
 
